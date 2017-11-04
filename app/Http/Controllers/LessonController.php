@@ -13,6 +13,7 @@ class LessonController extends ApiController
     public function __construct(LessonTramsformer $lessonTramsformer)
     {
         $this->lessonTransformer = $lessonTramsformer;
+        $this->middleware('auth.basic', ['only' => ['strore', 'update']]);
     }
 
     public function index()
@@ -35,6 +36,18 @@ class LessonController extends ApiController
             'status' => 'success',
             'status_code' => '200',
             'data' => $this->lessonTransformer->transform($lesson),
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        if(! $request->get('title') or ! $request->get('body')) {
+            return $this->setStatusCode(422)->responseError('validate fails');
+        }
+        Lesson::create($request->all());
+        return $this->setStatusCode(200)->response([
+            'status' => 'success',
+            'message' => 'lesson created',
         ]);
     }
 }
