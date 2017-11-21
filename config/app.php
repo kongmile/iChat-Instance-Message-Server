@@ -178,7 +178,7 @@ return [
         App\Providers\RouteServiceProvider::class,
 
         Dingo\Api\Provider\LaravelServiceProvider::class,
-        Tymon\JWTAuth\Providers\LaravelServiceProvider::class,
+        Tymon\JWTAuth\Providers\JWTAuthServiceProvider::class,
 
     ],
 
