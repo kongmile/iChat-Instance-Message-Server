@@ -24,7 +24,7 @@ class AuthController extends BaseController
         }
 
         // all good so return the token
-        return response()->json(compact('token'));
+        return $this->response->array(compact('token'));
     }
 
     public function register(Request $request) {
