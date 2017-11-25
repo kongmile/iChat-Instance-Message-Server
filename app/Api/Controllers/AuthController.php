@@ -22,9 +22,9 @@ class AuthController extends BaseController
             // something went wrong whilst attempting to encode the token
             return $this->response->error('could_not_create_token', 500);
         }
-
+        $user = User::where('email', $request->email)->first();
         // all good so return the token
-        return $this->response->array(compact('token'));
+        return $this->response->array(compact('token', 'user'));
     }
 
     public function register(Request $request) {
@@ -37,7 +37,7 @@ class AuthController extends BaseController
         $user = User::create($newUser);
         $token = JWTAuth::fromUser($user);
 
-        return response()->json(compact('token'));
+        return $this->response->array(compact('token'));
     }
 
     public function getAuthenticatedUser()
@@ -45,24 +45,24 @@ class AuthController extends BaseController
         try {
 
             if (!$user = JWTAuth::parseToken()->authenticate()) {
-                return response()->json(['user_not_found'], 404);
+                return $this->response->error('user_not_found', 404);
             }
 
         } catch (TokenExpiredException $e) {
 
-            return response()->json(['token_expired'], $e->getStatusCode());
+            return $this->response->error('token_expired', $e->getStatusCode());
 
         } catch (TokenInvalidException $e) {
 
-            return response()->json(['token_invalid'], $e->getStatusCode());
+            return $this->response->error('token_invalid', $e->getStatusCode());
 
         } catch (JWTException $e) {
 
-            return response()->json(['token_absent'], $e->getStatusCode());
+            return $this->response->error('token_absent', $e->getStatusCode());
 
         }
 
         // the token is valid and we have found the user via the sub claim
-        return response()->json(compact('user'));
+        return $this->response->array(compact('user'));
     }
 }
