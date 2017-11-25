@@ -30,7 +30,8 @@ $api->version('v1', function ($api) {
             $api->get('profile/me','AuthController@getAuthenticatedUser');
             $api->get('lesson', 'LessonController@index');
             $api->get('lesson/{id}','LessonController@show');
-        });
 
+            $api->post('friend_requesting', 'FriendController@createFriendRequesting');
+        });
     });
 });

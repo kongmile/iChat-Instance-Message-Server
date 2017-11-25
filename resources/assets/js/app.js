@@ -20,3 +20,9 @@ Vue.component('example', require('./components/Example.vue'));
 const app = new Vue({
     el: '#app'
 });
+
+window.Echo.channel(`chat.user.${user_id}`)
+    .listen('FriendRequestingCreated', (e) => {
+        alert('FriendRequestingCreated listened');
+        console.log(e.friendRequesting);
+    });
