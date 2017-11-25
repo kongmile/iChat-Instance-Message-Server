@@ -65,4 +65,9 @@ class AuthController extends BaseController
         // the token is valid and we have found the user via the sub claim
         return $this->response->array(compact('user'));
     }
+
+    public function show() {
+        return $this->response->array(User::all()->toArray());
+    }
+
 }
