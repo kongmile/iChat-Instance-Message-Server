@@ -1,0 +1,169 @@
+swagger: "2.0"
+info:
+  description: "聊天系统APi文档, 正常返回在json中不会有status_code, 错误会附带错误信息。获得token后，放入url中，例http://api.dev?token=eyddf。在本文档中，填入右上角的Authorize按钮里，就可以直接在本文档中测试api。"
+  version: "1.0.0"
+  title: "iChat"
+  termsOfService: "http://swagger.io/terms/"
+  contact:
+    email: "943643887@qq.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "139.199.175.91"
+basePath: "/ichat/public/api"
+paths:
+  /user/register:
+    post:
+      tags:
+        - 用户验证
+      summary: 用户注册
+      description: 填写用户名、邮箱、密码注册
+      security: []
+      parameters:
+        - name: regist_info
+          in: body
+          description: 用户名、邮箱、密码
+          schema:
+            required:
+              - name
+              - email
+              - password
+            properties:
+              name:
+                type: string
+              email:
+                type: string
+              password:
+                type: string
+      responses:
+        200:
+          $ref: '#/responses/Auth200Response'
+        500:
+          $ref: '#/responses/Standard500Response'
+  /user/login:
+    post:
+      tags:
+        - 用户验证
+      summary: 登陆
+      security: []
+      parameters:
+        - name: auth_info
+          in: body
+          schema:
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+              password:
+                type: string
+      responses:
+        200:
+          $ref: '#/responses/Auth200Response'
+        401:
+          $ref: '#/responses/Standard401Response'
+        500:
+          $ref: '#/responses/Standard500Response'
+  /user:
+    get:
+      tags:
+        - 辅助API
+      summary: 获取全部用户，方便找id号
+      security: []
+      responses:
+        200:
+          description: 用户数组
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/User'
+  /profile/me:
+    get:
+        tags:
+         - 资料
+        summary: 获取自己的资料
+        description: 更多的资料还未完成
+        responses:
+          200:
+            description: 返回用户信息
+            schema:
+              $ref: '#/definitions/User'
+          401:
+            $ref: '#/responses/Standard401Response'
+  /friend_requesting:
+    post:
+      tags:
+        - 好友请求
+      summary: 创建好友请求
+      description: 发送好友请求，之后会通过socket发送给对方。 测试：注册个账号，获得id号，将token填入本文档右上角的Authorize按钮中；打开http://139.199.175.91/ichat/public 登陆这个账号；回到本文档，点击try it out 按钮， 将to的值改为获得的id号，点击excute执行
+      parameters:
+        - name: friend_questing
+          in: body
+          schema:
+            required:
+              - to
+            properties:
+              to:
+                description: 对方用户id
+                type: integer
+      responses:
+        200:
+          description: 好友请求发送成功
+          schema:
+            properties:
+              message:
+                description: 无用信息
+                type: string
+
+definitions:
+  Auth:
+    required:
+      - token
+      - user
+    properties:
+      token:
+        type: string
+      user:
+        type: object
+        properties:
+          id:
+            type: integer
+          name:
+            type: string
+          email:
+            type: string
+  User:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      email:
+        type: string
+  Error:
+    properties:
+      message:
+        type: string
+      status_code:
+        type: integer
+responses:
+  Auth200Response:
+    description: 返回用户信息和token，token用法见文档开头的说明
+    schema:
+      $ref: '#/definitions/Auth'
+  Standard500Response:
+    description: 因为我校验没写全，任何表单不规范都会引起该错误
+    schema:
+      $ref: '#/definitions/Error'
+  Standard401Response:
+    description: 无效的凭证
+    schema:
+      $ref: "#/definitions/Error"
+securityDefinitions:
+  UserSecurity:
+    type: apiKey
+    in: query
+    name: token
+security:
+  - UserSecurity: []
