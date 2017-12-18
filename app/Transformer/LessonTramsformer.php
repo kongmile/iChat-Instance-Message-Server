@@ -11,6 +11,7 @@ namespace App\Transformer;
 
 class LessonTramsformer extends Transformer
 {
+
     public function transform($lesson) {
         return [
             'title' => $lesson['title'],

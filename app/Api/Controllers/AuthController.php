@@ -5,9 +5,15 @@ use App\User;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Http\Request;
+use Qcloud\Sms\SmsSingleSender;
+use Illuminate\Support\Facades\Redis;
 
 class AuthController extends BaseController
 {
+    public $appid = 1400051279;
+    public $appkey = "113ec86386e08b6e3eea8c06473866c3";
+    public $smsTTL = 180;
+
     public function authenticate(Request $request)
     {
         // grab credentials from the request
@@ -15,7 +21,7 @@ class AuthController extends BaseController
 
         try {
             // attempt to verify the credentials and create a token for the user
-            if (! $token = JWTAuth::attempt($credentials)) {
+            if (!$token = JWTAuth::attempt($credentials)) {
                 return $this->response->error('invalid_credentials', 401);
             }
         } catch (JWTException $e) {
@@ -27,7 +33,8 @@ class AuthController extends BaseController
         return $this->response->array(compact('token', 'user'));
     }
 
-    public function register(Request $request) {
+    public function register(Request $request)
+    {
         $newUser = [
             'email' => $request->get('email'),
             'name' => $request->get('name'),
@@ -37,7 +44,7 @@ class AuthController extends BaseController
         $user = User::create($newUser);
         $token = JWTAuth::fromUser($user);
 
-        return $this->response->array(compact('token'));
+        return $this->response->array(compact('token', 'user'));
     }
 
     public function getAuthenticatedUser()
@@ -66,8 +73,56 @@ class AuthController extends BaseController
         return $this->response->array(compact('user'));
     }
 
-    public function show() {
+    public function show()
+    {
         return $this->response->array(User::all()->toArray());
     }
 
+    public function registerSms(Request $request)
+    {
+        if ($request->has('phone')) {
+            $phone = $request->phone;
+            $key = 'rigister_sms:' . $phone;
+            if ($request->has('code')) {
+                if ($request->code == Redis::get($key)) {
+                    $newUser = [
+                        'email' => $request->get('phone'),
+                        'name' => $request->get('name'),
+                        'password' => bcrypt($request->get('password'))
+                    ];
+
+                    $user = User::create($newUser);
+                    $token = JWTAuth::fromUser($user);
+
+                    return $this->response->array(compact('token', 'user'));
+                } else {
+                    $this->response->error('验证码错误', 401);
+                }
+            } else {
+                $sender = new SmsSingleSender($this->appid, $this->appkey);
+                $authCode = rand(1000, 9999);
+                $templId = 59199;
+                $params = [$authCode, $this->smsTTL];
+                // 假设模板内容为：测试短信，{1}，{2}，{3}，上学。
+                $result = $sender->sendWithParam("86", $phone, $templId, $params, "", "", "");
+                $rsp = json_decode($result);
+                if ($rsp->result != 0) {
+                    return $this->response->error('腾讯云短信服务:发送失败，频率过高', 403);
+                } else {
+                    if (Redis::exists($key)) {
+                        return $this->response->error('ichat服务器:发送失败，频率过高', 403);
+                    } else {
+                        Redis::set($key, $authCode);
+                        Redis::expire($key, $this->smsTTL);
+                        return $this->response->array([
+                            'message' => 'sms sent',
+                            'key' => $key,
+                        ]);
+                    }
+                }
+            }
+        } else {
+            return $this->response->error('请输入正确的手机号', 401);
+        }
+    }
 }

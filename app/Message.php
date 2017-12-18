@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class FriendRequesting extends Model
+class Message extends Model
 {
     public function fromUser() {
         return $this->belongsTo('App\User', 'from', 'id');
@@ -13,5 +13,4 @@ class FriendRequesting extends Model
     public function toUser() {
         return $this->belongsTo('App\User', 'to', 'id');
     }
-
 }

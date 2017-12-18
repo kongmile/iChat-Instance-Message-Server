@@ -13,9 +13,9 @@ class EventServiceProvider extends ServiceProvider
      * @var array
      */
     protected $listen = [
-        'App\Events\FriendRequestingCreated' => [
-            'App\Listeners\SendFriendRequesting',
-        ],
+        'App\Events\FriendRequestingCreated' => [],
+        'App\Events\FriendRequestingAgreed' => [],
+        'App\Events\MessageSent' => [],
     ];
 
     /**

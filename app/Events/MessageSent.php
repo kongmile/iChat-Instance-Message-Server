@@ -9,28 +9,21 @@ use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use App\FriendRequesting;
-use Dingo\Api\Routing\Helpers;
+use App\Message;
 
-class FriendRequestingCreated implements ShouldBroadcast
+class MessageSent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $friendRequesting;
-    public $from_user;
-    public $to_user;
-
+    public $msg;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(FriendRequesting $friendRequesting)
+    public function __construct(Message $message)
     {
-        $this->friendRequesting = $friendRequesting;
-        $this->friendRequesting->fromUser;
-        $this->friendRequesting->toUser;
-
+        $this->msg = $message;
     }
 
     /**
@@ -40,14 +33,14 @@ class FriendRequestingCreated implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new Channel('chat.user.'.$this->friendRequesting->to);
+        return new Channel('chat.user.'. $this->msg->to);
     }
 
     public function broadcastWith()
     {
-        $friendRequestion = $this->friendRequesting->toArray();
-        $friendRequestion['from'] = $this->friendRequesting->fromUser;
-        $friendRequestion['to'] = $this->friendRequesting->toUser;
-        return $friendRequestion;
+        $msg = $this->msg->toArray();
+        $msg['from'] = $this->msg->fromUser->toArray();
+        $msg['to'] = $this->msg->toUser->toArray();
+        return $msg;
     }
 }

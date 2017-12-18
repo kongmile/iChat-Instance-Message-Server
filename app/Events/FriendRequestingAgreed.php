@@ -10,15 +10,13 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use App\FriendRequesting;
-use Dingo\Api\Routing\Helpers;
 
-class FriendRequestingCreated implements ShouldBroadcast
+class FriendRequestingAgreed implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $friendRequesting;
-    public $from_user;
-    public $to_user;
+    private $friendRequesting;
+    public $to;
 
     /**
      * Create a new event instance.
@@ -28,9 +26,7 @@ class FriendRequestingCreated implements ShouldBroadcast
     public function __construct(FriendRequesting $friendRequesting)
     {
         $this->friendRequesting = $friendRequesting;
-        $this->friendRequesting->fromUser;
-        $this->friendRequesting->toUser;
-
+        $this->to = $friendRequesting->toUser;
     }
 
     /**
@@ -40,7 +36,7 @@ class FriendRequestingCreated implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new Channel('chat.user.'.$this->friendRequesting->to);
+        return new Channel('chat.user.'. $this->friendRequesting->from);
     }
 
     public function broadcastWith()
