@@ -76,6 +76,23 @@ class FriendController extends BaseController
         return $this->response->array($friendRquesting->toUser);
     }
 
+    public function ignoreFriendRequesting(Request $request, $id) {
+        $friendRquesting = FriendRequesting::findOrFail($id);
+        if(!$friendRquesting) {
+            return $this->response->errorNotFound($id);
+        }
+        if($friendRquesting->is_handled)
+            return $this->response->errorForbidden('You have already handled');
+        if($friendRquesting->to != $this->auth->user()->id) {
+            return $this->response->errorForbidden('You do not have right to ignore');
+        }
+        $friendRquesting->is_read = true;
+        $friendRquesting->is_handled = true;
+        $friendRquesting->is_agreed = false;
+        $friendRquesting->save();
+        return $this->response->array(['msg' => 'Ignored']);
+    }
+
     /**
      * Store a newly created resource in storage.
      *

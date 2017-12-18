@@ -34,7 +34,7 @@ $api->version('v1', function ($api) {
 
             $api->post('friend_requesting', 'FriendController@createFriendRequesting');
             $api->get('friend_requesting/agree/{id}', 'FriendController@agreeFriendRequesting');
-
+            $api->get('friend_requesting/ignore/{id}', 'FriendController@ignoreFriendRequesting');
             $api->get('friend/{id}', 'FriendController@show');
             $api->get('friend', 'FriendController@index');
             $api->delete('friend/{id}', 'FriendController@destroy');

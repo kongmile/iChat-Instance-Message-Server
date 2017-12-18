@@ -17,7 +17,7 @@ class FriendTransformer extends Transformer
     public function transform($item)
     {
 
-        if($profile = User::find($item['id'])->profile) {
+        if($profile = User::findOrFail($item['id'])->profile) {
             $avatar = $profile->user_img;
             $area = $profile->user_area;
             $birthday = $profile->user_birthday;

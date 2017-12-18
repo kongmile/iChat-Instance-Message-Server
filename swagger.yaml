@@ -115,7 +115,131 @@ paths:
               message:
                 description: 无用信息
                 type: string
+        401:
+          $ref: '#/responses/Standard401Response'
+  /friend_requesting/agree/{id}:
+    get:
+      tags:
+        - 好友请求
+      summary: 同意指定的好友请求
+      parameters:
+        - name: id
+          in: path
+          description: 注意：这个id不是用户id，而是好友请求的编号
+          required: true
+          type: integer
+      responses:
+        200:
+          description: 好友请求同意
+          schema:
+           $ref: '#/responses/Standard200Response'
+  /friend_requesting/ignore/{id}:
+      get:
+        tags:
+          - 好友请求
+        summary: 忽略指定的好友请求
+        parameters:
+          - name: id
+            in: path
+            description: 注意：这个id不是用户id，而是好友请求的编号
+            required: true
+            type: integer
+        responses:
+          200:
+            description: 好友请求已忽略
+            schema:
+              $ref: '#/responses/Standard200Response'
+          401:
+              $ref: '#/responses/Standard401Response'
+  /friend:
+    get:
+      tags:
+       - 好友
+      summary: 好友列表
+      responses:
+        200:
+          description: 返回分组过的好友列表，现在有一个默认有个我的好友分组
+          schema:
+            $ref: '#/definitions/FriendList'
+  /friend/{id}:
+    get:
+      tags:
+        - 资料
+      summary: 获取指定id用户的资料
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: 返回用户资料
+          schema:
+            $ref: '#/definitions/User'
+        401:
+          $ref: '#/responses/Standard401Response'
+    delete:
+      tags:
+        - 好友
+      summary: 删除好友
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: 删除好友成功
+          schema:
+            $ref: '#/responses/Standard200Response'
 
+  /friend/search:
+    post:
+      tags:
+        - 好友
+      summary: 通过手机号或昵称搜索
+      parameters:
+        - name: keyword
+          in: body
+          schema:
+            required:
+              - keyword
+            properties:
+              keyword:
+                type: string
+      responses:
+        200:
+          description: 用户数组,再加上一个isFriend
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/User'
+
+
+  /msg:
+    post:
+      tags:
+        - 聊天
+      summary: 发送消息
+      parameters:
+        - name: message
+          in: body
+          schema:
+            required:
+              - to
+              - msg
+            properties:
+              to:
+                type: integer
+                description: 接收方id
+              msg:
+                type: string
+                description: 消息
+      responses:
+          200:
+            $ref: '#/responses/Standard200Response'
+          401:
+            $ref: '#/responses/Standard401Response'
 definitions:
   Auth:
     required:
@@ -141,12 +265,39 @@ definitions:
         type: string
       email:
         type: string
+      avatar:
+        type: string
+      sex:
+        type: string
+      birthday:
+        type: string
+      area:
+        type: string
+      signature:
+        type: string
   Error:
     properties:
       message:
         type: string
       status_code:
         type: integer
+  Message:
+      properties:
+        message:
+          type: string
+  Tags:
+    properties:
+      tags:
+        type: string
+        description: 分组名
+      members:
+        type: array
+        items:
+          $ref: '#/definitions/User'
+  FriendList:
+      type: array
+      items:
+        $ref: '#/definitions/Tags'
 responses:
   Auth200Response:
     description: 返回用户信息和token，token用法见文档开头的说明
@@ -160,6 +311,10 @@ responses:
     description: 无效的凭证
     schema:
       $ref: "#/definitions/Error"
+  Standard200Response:
+    description: 请求成功
+    schema:
+      $ref: '#/definitions/Message'
 securityDefinitions:
   UserSecurity:
     type: apiKey
