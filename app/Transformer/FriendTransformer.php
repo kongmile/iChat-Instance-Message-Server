@@ -11,6 +11,7 @@ namespace App\Transformer;
 use App\Friend;
 use Dingo\Api\Routing\Helpers;
 use App\User;
+use Illuminate\Support\Facades\Redis;
 class FriendTransformer extends Transformer
 {
     use Helpers;
@@ -28,7 +29,7 @@ class FriendTransformer extends Transformer
             'id' => $item['id'],
             "name" =>  $item['name'],
             "email" => $item["email"],
-            "isOnine" => true,
+            "isOnline" => Redis::get('isOnline:'.$item['id']) ? true : false,
             "isFriend" => !empty(Friend::where([['user2', $item['id']], ['user1', $this->auth->user()->id]])->count()),
             "avatar" => $avatar ?? null,
             "sex" => $sex ?? null,
