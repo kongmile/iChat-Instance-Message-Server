@@ -11,6 +11,8 @@ use App\Events\FriendRequestingSent;
 use App\User;
 use App\Events\FriendRequestingAgreed;
 use App\Transformer\FriendTransformer;
+use App\Transformer\TagTransformer;
+use App\Tag;
 class FriendController extends BaseController
 {
     use Helpers;
@@ -22,12 +24,14 @@ class FriendController extends BaseController
     public function index()
     {
 
-        return $this->response->array([
-            [
-                'tags' => '我的好友',
-                'members' => (new FriendTransformer())->transformCollection($this->auth->user()->friends->unique()->toArray())
-            ]
-        ]);
+//        return $this->response->array([
+//            [
+//                'tags' => '我的好友',
+//                'id' => 0,
+//                'members' => (new FriendTransformer())->transformCollection($this->auth->user()->friends->unique()->toArray())
+//            ]
+//        ]);
+        return $this->response->array((new TagTransformer())->transformCollection($this->auth->user()->tags->toArray()));
     }
 
     /**
@@ -41,6 +45,8 @@ class FriendController extends BaseController
         $FriendRequesting->from = $this->auth->user()->id;
         $FriendRequesting->to = $request->to;
         $FriendRequesting->message = $request->message;
+        // 分组
+        $FriendRequesting->tag_id = $request->tag_id;
         $FriendRequesting->save();
         broadcast(new FriendRequestingCreated($FriendRequesting));
         return $this->response->array([
@@ -49,31 +55,37 @@ class FriendController extends BaseController
         ]);
     }
 
-    public function agreeFriendRequesting(Request $request, $id)
+    public function agreeFriendRequesting(Request $request, $id, $tag_id)
     {
-        $friendRquesting = FriendRequesting::where('id', $id)->first();
-        if(!$friendRquesting) {
+        $friendRequesting = FriendRequesting::where('id', $id)->first();
+        if(!$friendRequesting) {
             return $this->response->errorNotFound($id);
         }
-        if($friendRquesting->is_handled)
+        if($friendRequesting->is_handled)
             return $this->response->errorForbidden('You have already handled');
-        if($friendRquesting->to != $this->auth->user()->id) {
+        if($friendRequesting->to != $this->auth->user()->id) {
             return $this->response->errorForbidden('You do not have right to agree');
         }
+        $tag = Tag::findOrFail($tag_id);
+        if($tag->user_id != $this->auth->user()->id) {
+            return $this->response->error('This tag do not belong to you', 403);
+        }
         $friend1 = new Friend();
-        $friend1->user1 = $friendRquesting->from;
-        $friend1->user2 = $friendRquesting->to;
+        $friend1->user1 = $friendRequesting->from;
+        $friend1->user2 = $friendRequesting->to;
+        $friend1->tag_id = $friendRequesting->tag_id;
         $friend1->save();
         $friend2 = new Friend();
-        $friend2->user2 = $friendRquesting->from;
-        $friend2->user1 = $friendRquesting->to;
+        $friend2->user2 = $friendRequesting->from;
+        $friend2->user1 = $friendRequesting->to;
+        $friend2->tag_id = $tag_id;
         $friend2->save();
-        $friendRquesting->is_handled = true;
-        $friendRquesting->is_agreed = true;
-        $friendRquesting->is_read = true;
-        $friendRquesting->save();
-        event(new FriendRequestingAgreed($friendRquesting));
-        return $this->response->array($friendRquesting->toUser);
+        $friendRequesting->is_handled = true;
+        $friendRequesting->is_agreed = true;
+        $friendRequesting->is_read = true;
+        $friendRequesting->save();
+        event(new FriendRequestingAgreed($friendRequesting));
+        return $this->response->array($friendRequesting->toUser);
     }
 
     public function ignoreFriendRequesting(Request $request, $id) {
