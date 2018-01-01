@@ -25,17 +25,21 @@ class FriendTransformer extends Transformer
             $signature = $profile->user_qianming;
             $sex = $profile->user_sex;
         }
-        return [
+        $user = [
             'id' => $item['id'],
             "name" =>  $item['name'],
             "email" => $item["email"],
             "isOnline" => Redis::get('isOnline:'.$item['id']) ? true : false,
             "isFriend" => !empty(Friend::where([['user2', $item['id']], ['user1', $this->auth->user()->id]])->count()),
-            "avatar" => $avatar ?? null,
+            "avatar" => $avatar ?? "http://139.199.175.91/ichat/public/storage/files/AT1fZ4RkgS5rOesjeJwc7twPBN7bCk6CIbjUhr4x.png",
             "sex" => $sex ?? null,
             "birthday" => $birthday ?? null,
             "area" => $area ?? null,
             "signature" => $signature ?? null,
         ];
+        if($user['isFriend']) {
+            $user['tag'] = Friend::where([['user2', $item['id']], ['user1', $this->auth->user()->id]])->first()->tag->toArray();
+        }
+        return $user;
     }
 }

@@ -9,6 +9,7 @@ use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use App\Transformer\FriendTransformer;
 use App\Message;
 
 class MessageSent implements ShouldBroadcast
@@ -39,8 +40,8 @@ class MessageSent implements ShouldBroadcast
     public function broadcastWith()
     {
         $msg = $this->msg->toArray();
-        $msg['from'] = $this->msg->fromUser->toArray();
-        $msg['to'] = $this->msg->toUser->toArray();
+        $msg['from'] = (new FriendTransformer())->transform($this->msg->fromUser->toArray());
+        $msg['to'] = (new FriendTransformer())->transform($this->msg->toUser->toArray());
         return $msg;
     }
 }

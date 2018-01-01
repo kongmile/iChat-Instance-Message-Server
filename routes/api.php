@@ -33,7 +33,7 @@ $api->version('v1', function ($api) {
             $api->get('lesson/{id}','LessonController@show');
 
             $api->post('friend_requesting', 'FriendController@createFriendRequesting');
-            $api->get('friend_requesting/agree/{id}', 'FriendController@agreeFriendRequesting');
+            $api->get('friend_requesting/agree/{id}/tag/{tag_id}', 'FriendController@agreeFriendRequesting');
             $api->get('friend_requesting/ignore/{id}', 'FriendController@ignoreFriendRequesting');
             $api->get('friend/{id}', 'FriendController@show');
             $api->get('friend', 'FriendController@index');
@@ -41,6 +41,16 @@ $api->version('v1', function ($api) {
             $api->post('friend/search', 'FriendController@search');
 
             $api->post('msg', 'ChatController@create');
+
+            // 文件上传
+            $api->post('file', 'FileController@store');
+
+            // 分组
+            $api->get('tag', 'TagController@index');
+            $api->post('tag', 'TagController@store');
+            $api->delete('tag/{id}', 'TagController@destroy');
+            $api->patch('tag/{id}', 'TagController@update');
+            $api->get('tag/put/{user_id}/to/{tag_id}', 'TagController@put');
         });
     });
 });

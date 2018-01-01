@@ -14,6 +14,7 @@ basePath: "/ichat/public/api"
 paths:
   /user/register:
     post:
+      deprecated: true
       tags:
         - 用户验证
       summary: 用户注册
@@ -42,6 +43,7 @@ paths:
           $ref: '#/responses/Standard500Response'
   /user/login:
     post:
+      deprecated: true
       tags:
         - 用户验证
       summary: 登陆
@@ -95,7 +97,7 @@ paths:
     post:
       tags:
         - 好友请求
-      summary: 创建好友请求
+      summary: 创建好友请求 **要求有分组id**
       description: 发送好友请求，之后会通过socket发送给对方。 测试：注册个账号，获得id号，将token填入本文档右上角的Authorize按钮中；打开http://139.199.175.91/ichat/public 登陆这个账号；回到本文档，点击try it out 按钮， 将to的值改为获得的id号，点击excute执行
       parameters:
         - name: friend_questing
@@ -103,9 +105,13 @@ paths:
           schema:
             required:
               - to
+              - tag_id
             properties:
               to:
                 description: 对方用户id
+                type: integer
+              tag_id:
+                description: 分组id
                 type: integer
       responses:
         200:
@@ -117,17 +123,21 @@ paths:
                 type: string
         401:
           $ref: '#/responses/Standard401Response'
-  /friend_requesting/agree/{id}:
+  /friend_requesting/agree/{id}/tag/{tag_id}:
     get:
       tags:
         - 好友请求
-      summary: 同意指定的好友请求
+      summary: 同意指定的好友请求 **要求有分组id**
       parameters:
         - name: id
           in: path
           description: 注意：这个id不是用户id，而是好友请求的编号
           required: true
           type: integer
+        - name: tag_id
+          in: path
+          description: 分组id
+          required: true
       responses:
         200:
           description: 好友请求同意
@@ -220,7 +230,7 @@ paths:
     post:
       tags:
         - 聊天
-      summary: 发送消息
+      summary: 发送消息 **新添消息类型,是否群消息**
       parameters:
         - name: message
           in: body
@@ -232,6 +242,12 @@ paths:
               to:
                 type: integer
                 description: 接收方id
+              content_type:
+                type: integer
+                description: 消息类型，默认纯文本 1：纯文本 2：图片 3：语音
+              is_group_msg:
+                type: boolean
+                description: 是否群消息，默认否
               msg:
                 type: string
                 description: 消息
@@ -240,6 +256,106 @@ paths:
             $ref: '#/responses/Standard200Response'
           401:
             $ref: '#/responses/Standard401Response'
+  /file:
+    post:
+      tags:
+        - 文件
+      summary: 图片或语音上传
+      parameters:
+        - name: file
+          in: formData
+          type: file
+          description: 要上传的文件
+      responses:
+        200:
+          description: 上传成功
+          schema:
+            properties:
+              url:
+                type: string
+                description: 文件url
+  /tag:
+    get:
+      tags:
+        - 分组
+      summary: 全部分组
+      responses:
+        200:
+          description: 分组数组(不带成员)
+          schema:
+            $ref: '#/definitions/Tags'
+    post:
+      tags:
+        - 分组
+      summary: 添加分组
+      parameters:
+        - in: body
+          name: tag
+          schema:
+            required:
+              - name
+            properties:
+              name:
+                description: 分组名
+                type: string
+      responses:
+        200:
+          description: 添加的分组的信息
+          schema:
+            $ref: '#/definitions/Tags'
+  /tag/{tag_id}:
+    delete:
+      tags:
+        - 分组
+      summary: 删除分组
+      parameters:
+        - name: tag_id
+          in: path
+          type: integer
+      responses:
+        200:
+          description: 被删除的分组
+          schema:
+            $ref: '#/definitions/Tags'
+    patch:
+          tags:
+            - 分组
+          summary: 修改分组
+          parameters:
+            - name: tag_id
+              in: path
+              type: integer
+            - in: body
+              name: tag
+              schema:
+                required:
+                  - name
+                properties:
+                  name:
+                    description: 分组名
+                    type: string
+          responses:
+            200:
+              description: 添加的分组的信息
+              schema:
+                $ref: '#/definitions/Tags'
+  /tag/put/{user_id}/to/{tag_id}:
+    get:
+      tags:
+        - 分组
+      summary: 为用户设置分组
+      parameters:
+        - in: path
+          name: user_id
+          description: 用户id
+          type: integer
+        - in: path
+          name: tag_id
+          description: 分组id
+          type: integer
+      responses:
+        200:
+          description: 设置成功
 definitions:
   Auth:
     required:
@@ -287,6 +403,9 @@ definitions:
           type: string
   Tags:
     properties:
+      id:
+        type: integer
+        description: 分组编号
       tags:
         type: string
         description: 分组名
