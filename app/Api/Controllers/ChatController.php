@@ -26,9 +26,11 @@ class ChatController extends BaseController
     public function create(Request $request)
     {
         $msg = new Message();
+        $msg->is_group_msg = $request->has('is_group_msg') ? $request->is_group_msg : 0;
         $msg->from = $this->auth->user()->id;
         $msg->to = $request->to;
         $msg->msg = $request->msg;
+        $msg->content_type = $request->has('content_type') ? $request->content_type : 1;
         $msg->save();
         event(new MessageSent($msg));
         return $this->response->array(['message' => 'message sent']);
